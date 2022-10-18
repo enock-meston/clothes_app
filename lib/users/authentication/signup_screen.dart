@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import '../../api_connection/api_connection.dart';
+import '../model/user.dart';
 import 'login_screen.dart';
 
 class SingUpScreen extends StatefulWidget {
@@ -31,16 +32,48 @@ class _SingUpScreenState extends State<SingUpScreen> {
         },
       );
       if(res.statusCode == 200){ // from flutter app the connection with API to server --- success
-         var resBody=jsonDecode(res.body);
-         if(resBody['emailFound'] == true){ //success is true // record is exist
+         var resBodyOfValidateEmail=jsonDecode(res.body);
+         if(resBodyOfValidateEmail['emailFound'] == true){ //success is true // record is exist
            Fluttertoast.showToast(msg: "Email is already in Someone else use. try another email");
          }else{
            // register & save new user record to the database
+           registerAndSaveUserRecord();
          }
       }
     }catch(e){
-
+      print(e.toString());
+      Fluttertoast.showToast(msg: e.toString());
     }
+  }
+
+  registerAndSaveUserRecord() async
+  {
+      User userModel = User(
+        1,
+        nameController.text.trim(),
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+
+      try{
+        var res= await http.post(
+          Uri.parse(API.signUp),
+          body: userModel.toJson(),
+        );
+        
+        if(res.statusCode == 200){ // from flutter app the connection with API to server --- success
+          var resBodyOfSignUp = jsonDecode(res.body);
+          print(res.body);
+          if(resBodyOfSignUp['success']== true){
+            Fluttertoast.showToast(msg: "Congratulations, You are SignUp Successfully");
+          }else{
+            Fluttertoast.showToast(msg: "Error Occurred, Try Again !");
+          }
+        }
+      }catch(e){
+        print(e.toString());
+        Fluttertoast.showToast(msg: e.toString());
+      }
   }
   @override
   Widget build(BuildContext context) {
