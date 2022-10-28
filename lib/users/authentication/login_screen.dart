@@ -1,6 +1,14 @@
+import 'dart:convert';
+
+import 'package:clothes_app/users/api_connection/api_connection.dart';
+import 'package:clothes_app/users/UserPreferences/user_preferences.dart';
 import 'package:clothes_app/users/authentication/signup_screen.dart';
+import 'package:clothes_app/users/fragments/dashboard_of_fragments.dart';
+import 'package:clothes_app/users/model/user.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -8,6 +16,45 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+
+  loginUserNow() async{
+   try{
+     var res= await http.post(
+       Uri.parse(API.login),
+       body: {
+         'user_email': emailController.text.trim(),
+         'user_password': passwordController.text.trim(),
+       },
+     );
+
+     if(res.statusCode == 200){ // from flutter app the connection with API to server --- success
+       var resBodyOfLogin = jsonDecode(res.body);
+
+       if(resBodyOfLogin['success'] == true){
+         Fluttertoast.showToast(msg: "You are Logged In Successfully");
+
+         User userInfo = User.fromJson(resBodyOfLogin["userData"]); // this comes from user.dart as model
+
+         // save userInfo to local Storage using shared Preferences
+         await RememberUserPrefs.storeUserInfo(userInfo);
+         //  send user to the main screen
+         //   Get.to(DashboardOfFragments());
+         //  if i want to add some delay of two or three seconds do this
+         Future.delayed(Duration(microseconds: 2000),()
+         {
+           Get.to(DashboardOfFragments());
+         });
+
+
+       }else{
+         Fluttertoast.showToast(msg: "Please Write Correct Password or email.\n Try Again !");
+       }
+     }
+
+   }catch(errorMsg){
+     print("Error ::" + errorMsg.toString());
+   }
+  }
   // form key declaration
   var formKey = GlobalKey<FormState>();
   //text field controllers
@@ -158,7 +205,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   borderRadius: BorderRadius.circular(30),
                                   child: InkWell(
                                     onTap: (){
-
+                                      // loginUserNow();
+                                      if(formKey.currentState!.validate()){
+                                        loginUserNow();
+                                      }
                                     },
                                     borderRadius: BorderRadius.circular(30),
                                     child: const Padding(

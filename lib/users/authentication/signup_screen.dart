@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:clothes_app/users/api_connection/api_connection.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:http/http.dart' as http;
-import '../../api_connection/api_connection.dart';
 import '../model/user.dart';
 import 'login_screen.dart';
 
@@ -25,12 +25,14 @@ class _SingUpScreenState extends State<SingUpScreen> {
 
   validateUserEmail() async {
     try{
-     var res= await http.post(
+      var url = "http://192.168.1.64/api_clothes_store/user/validate_email.php";
+      var res= await http.post(
         Uri.parse(API.validateEmail),
         body: {
           'user_email': emailController.text.trim(),
         },
       );
+
       if(res.statusCode == 200){ // from flutter app the connection with API to server --- success
          var resBodyOfValidateEmail=jsonDecode(res.body);
          if(resBodyOfValidateEmail['emailFound'] == true){ //success is true // record is exist
@@ -42,7 +44,7 @@ class _SingUpScreenState extends State<SingUpScreen> {
       }
     }catch(e){
       print(e.toString());
-      Fluttertoast.showToast(msg: e.toString());
+      Fluttertoast.showToast(msg: "${e.toString()} Error in catch validateEmail");
     }
   }
 
@@ -56,23 +58,32 @@ class _SingUpScreenState extends State<SingUpScreen> {
       );
 
       try{
+        var url = "http://192.168.1.67/api_clothes_store/user/signup.php";
         var res= await http.post(
           Uri.parse(API.signUp),
           body: userModel.toJson(),
+
         );
         
         if(res.statusCode == 200){ // from flutter app the connection with API to server --- success
           var resBodyOfSignUp = jsonDecode(res.body);
-          print(res.body);
-          if(resBodyOfSignUp['success']== true){
+
+          if(resBodyOfSignUp['success'] == true){
             Fluttertoast.showToast(msg: "Congratulations, You are SignUp Successfully");
+            //clear textField after data successfully added
+            setState(() {
+              nameController.clear();
+              emailController.clear();
+              passwordController.text = "";
+            });
+
           }else{
             Fluttertoast.showToast(msg: "Error Occurred, Try Again !");
           }
         }
       }catch(e){
         print(e.toString());
-        Fluttertoast.showToast(msg: e.toString());
+        Fluttertoast.showToast(msg:  "${e.toString()} Error in catch register ");
       }
   }
   @override
