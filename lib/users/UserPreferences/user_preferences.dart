@@ -24,5 +24,10 @@ static Future<User?> readUserInfo() async{
     }
     return currentUserInfo;
 }
+  //remove user_info
+  static Future<void> removeUserInfo() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.remove("currentUser");
+  }
 
 }
